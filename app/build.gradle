@@ -22,6 +22,11 @@ dependencies {
 
     // This dependency is used by the application.
     implementation 'com.google.guava:guava:31.1-jre'
+
+    implementation("net.dv8tion:JDA:5.0.1") {
+      // Disable audio natives to reduce jar size by excluding `opus-java`
+      exclude module: 'opus-java'
+    }
 }
 
 application {
