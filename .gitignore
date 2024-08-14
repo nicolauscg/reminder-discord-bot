@@ -7,3 +7,4 @@ build
 .vscode
 app/src/main/resources/env.properties
 notes
+app/bin
