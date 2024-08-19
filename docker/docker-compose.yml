@@ -1,0 +1,17 @@
+version: '3.9'
+
+services:
+  reminder-db:
+    image: postgres:16.2-alpine
+    restart: always
+    ports:
+    - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: reminderdiscordbot
+      POSTGRES_USER: reminderdiscordbot
+      POSTGRES_DB: reminderdiscordbot
+    volumes: 
+      - reminder-db:/var/lib/postgresql/data
+volumes:
+  reminder-db:
+    driver: local
