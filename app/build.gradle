@@ -10,21 +10,20 @@ repositories {
 }
 
 dependencies {
-    // Use JUnit Jupiter for testing.
     testImplementation 'org.junit.jupiter:junit-jupiter:5.9.1'
 
-    // This dependency is used by the application.
     implementation 'com.google.guava:guava:31.1-jre'
-
     implementation("net.dv8tion:JDA:5.0.1") {
       // Disable audio natives to reduce jar size by excluding `opus-java`
       exclude module: 'opus-java'
     }
+    implementation 'org.postgresql:postgresql:42.6.2'
+    implementation 'org.mybatis:mybatis:3.5.16'
 
     liquibaseRuntime 'org.liquibase:liquibase-core:4.24.0'
     liquibaseRuntime 'info.picocli:picocli:4.7.5'
     liquibaseRuntime 'org.yaml:snakeyaml:1.33'
-    liquibaseRuntime 'org.postgresql:postgresql:42.6.0'
+    liquibaseRuntime 'org.postgresql:postgresql:42.6.2'
 }
 
 apply plugin: "org.liquibase.gradle"
