@@ -9,7 +9,8 @@ import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 import org.apache.ibatis.transaction.TransactionFactory;
 import org.apache.ibatis.transaction.jdbc.JdbcTransactionFactory;
-import org.postgresql.ds.PGSimpleDataSource;
+
+import com.zaxxer.hikari.HikariDataSource;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -57,10 +58,11 @@ public class App {
         /*
          * Prepare database connection
          */ 
-        PGSimpleDataSource dataSource = new PGSimpleDataSource();
-        dataSource.setURL(dbUrl);
-        dataSource.setUser(dbUsername);
+        HikariDataSource dataSource = new HikariDataSource();
+        dataSource.setJdbcUrl(dbUrl);
+        dataSource.setUsername(dbUsername);
         dataSource.setPassword(dbPassword);
+        dataSource.setAutoCommit(false);
         TransactionFactory transactionFactory = new JdbcTransactionFactory();
         Environment environment = new Environment("development", transactionFactory, dataSource);
         Configuration configuration = new Configuration(environment);
@@ -74,7 +76,7 @@ public class App {
             .setChunkingFilter(ChunkingFilter.ALL)
             .setMemberCachePolicy(MemberCachePolicy.ALL)
             .enableIntents(GatewayIntent.GUILD_MEMBERS)
-            .addEventListeners(new JDAListener())
+            .addEventListeners(new JDAListener(sqlSessionFactory))
             .build();
         api.awaitReady();
         System.out.println("Bot is ready");

@@ -1,6 +1,7 @@
 package reminder.discord.bot.java.model;
 
 import java.sql.Timestamp;
+import java.util.List;
 
 // Class methods are generated with help from IDE.
 
@@ -8,12 +9,18 @@ public class DraftReminder {
     private String firstInteractionId;
     private String userId;
     private String guildId;
-    private String participantUserIds;
+    private ParticipantUserIdsString participantUserIds;
     private String title;
     private String description;
     private Timestamp updatedAt;
 
     public DraftReminder() {
+    }
+
+    public DraftReminder(String firstInteractionId, String userId, String guildId) {
+        this.firstInteractionId = firstInteractionId;
+        this.userId = userId;
+        this.guildId = guildId;
     }
 
     public String getFirstInteractionId() {
@@ -41,11 +48,19 @@ public class DraftReminder {
     }
 
     public String getParticipantUserIds() {
+        return participantUserIds.toString();
+    }
+
+    public ParticipantUserIdsString getParticipantUserIdsAsClass() {
         return participantUserIds;
     }
 
     public void setParticipantUserIds(String participantUserIds) {
-        this.participantUserIds = participantUserIds;
+        this.participantUserIds = new ParticipantUserIdsString(participantUserIds);
+    }
+
+    public void setParticipantUserIds(List<String> participantUserIds) {
+        this.participantUserIds = new ParticipantUserIdsString(participantUserIds);
     }
 
     public String getTitle() {

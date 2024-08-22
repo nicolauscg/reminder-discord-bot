@@ -7,11 +7,11 @@ public class CustomId {
     static final String SEPARATOR = ",";
 
     String label;
-    String intrId;
+    String firstIntrId;
 
-    public CustomId(@Nonnull String label, @Nonnull String intrId) {
+    public CustomId(@Nonnull String label, @Nonnull String firstIntrId) {
         this.label = label; 
-        this.intrId = intrId; 
+        this.firstIntrId = firstIntrId; 
     }
 
     public CustomId(@Nonnull String customId) {
@@ -20,11 +20,11 @@ public class CustomId {
             this.label = arr[0]; 
         }
         if (arr.length > 1) {
-            this.intrId = arr[1]; 
+            this.firstIntrId = arr[1]; 
         }
     }
 
     public String toString() {
-        return this.label + SEPARATOR + this.intrId;
+        return this.label + SEPARATOR + this.firstIntrId;
     }
 }

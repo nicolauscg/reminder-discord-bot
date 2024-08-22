@@ -19,6 +19,7 @@ dependencies {
     }
     implementation 'org.postgresql:postgresql:42.6.2'
     implementation 'org.mybatis:mybatis:3.5.16'
+    implementation 'com.zaxxer:HikariCP:5.1.0'
 
     liquibaseRuntime 'org.liquibase:liquibase-core:4.24.0'
     liquibaseRuntime 'info.picocli:picocli:4.7.5'
