@@ -21,8 +21,10 @@ import net.dv8tion.jda.api.interactions.components.text.TextInput;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
 import net.dv8tion.jda.api.interactions.modals.Modal;
 import reminder.discord.bot.java.mapper.DraftReminderMapper;
+import reminder.discord.bot.java.mapper.ReminderMapper;
 import reminder.discord.bot.java.model.DraftReminder;
 import reminder.discord.bot.java.model.ParticipantUserIdsString;
+import reminder.discord.bot.java.model.Reminder;
 
 public class JDAListener extends ListenerAdapter 
 {
@@ -162,9 +164,25 @@ public class JDAListener extends ListenerAdapter
 
     @Override
     public void onButtonInteraction(ButtonInteractionEvent event) {
-        CustomId evenCustomId = new CustomId(event.getComponentId());
-        if (evenCustomId.label.equals(CONFIRM_LABEL)) {
-            event.reply("Reminder created (not yet implemented)").queue();
+        CustomId eventCustomId = new CustomId(event.getComponentId());
+        if (eventCustomId.label.equals(CONFIRM_LABEL)) {
+            // Use non-ephemeral message to acknowledge the created reminder later
+            event.deferReply(false).queue();
+            String firstInteractionId = eventCustomId.firstIntrId;
+
+            try (SqlSession session = this.sqlSessionFactory.openSession()) {
+                DraftReminderMapper draftReminderMapper = session.getMapper(DraftReminderMapper.class);
+                DraftReminder draftReminder = draftReminderMapper.getOneByFirstInteractionId(firstInteractionId);
+
+                Reminder reminder = Reminder.fromDraft(draftReminder);
+                ReminderMapper reminderMapper = session.getMapper(ReminderMapper.class);
+                reminderMapper.createOne(reminder);
+
+                session.commit();
+            }
+            
+            event.getHook().sendMessage(
+                String.format("%s created a reminder", event.getUser().getEffectiveName())).queue();
         }
     }
 }

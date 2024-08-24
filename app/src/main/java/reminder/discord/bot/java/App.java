@@ -21,6 +21,7 @@ import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.ChunkingFilter;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import reminder.discord.bot.java.mapper.DraftReminderMapper;
+import reminder.discord.bot.java.mapper.ReminderMapper;
 
 public class App {
     public static void main(String[] args) throws Exception {
@@ -67,6 +68,7 @@ public class App {
         Environment environment = new Environment("development", transactionFactory, dataSource);
         Configuration configuration = new Configuration(environment);
         configuration.addMapper(DraftReminderMapper.class);
+        configuration.addMapper(ReminderMapper.class);
         SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(configuration);
 
         /*
