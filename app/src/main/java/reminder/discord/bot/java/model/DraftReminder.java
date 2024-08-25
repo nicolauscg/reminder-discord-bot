@@ -1,6 +1,6 @@
 package reminder.discord.bot.java.model;
 
-import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.List;
 
 // Class methods are generated with help from IDE.
@@ -12,7 +12,7 @@ public class DraftReminder {
     private ParticipantUserIdsString participantUserIds;
     private String title;
     private String description;
-    private Timestamp updatedAt;
+    private Instant updatedAt;
 
     public DraftReminder() {
     }
@@ -48,6 +48,9 @@ public class DraftReminder {
     }
 
     public String getParticipantUserIds() {
+        if (participantUserIds == null) {
+            return null;
+        }
         return participantUserIds.toString();
     }
 
@@ -79,11 +82,11 @@ public class DraftReminder {
         this.description = description;
     }
 
-    public Timestamp getUpdatedAt() {
+    public Instant getUpdatedAt() {
         return updatedAt;
     }
 
-    public void setUpdatedAt(Timestamp updatedAt) {
+    public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
     }
 

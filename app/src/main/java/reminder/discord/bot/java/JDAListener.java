@@ -20,6 +20,8 @@ import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu.B
 import net.dv8tion.jda.api.interactions.components.text.TextInput;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
 import net.dv8tion.jda.api.interactions.modals.Modal;
+import reminder.discord.bot.java.dto.DraftReminderCreate;
+import reminder.discord.bot.java.dto.DraftReminderUpdate;
 import reminder.discord.bot.java.mapper.DraftReminderMapper;
 import reminder.discord.bot.java.mapper.ReminderMapper;
 import reminder.discord.bot.java.model.DraftReminder;
@@ -58,11 +60,13 @@ public class JDAListener extends ListenerAdapter
              * Save a draft reminder to the DB with the information available so far
              */
             String firstInteractionId = event.getId();
-            DraftReminder draftReminder = new DraftReminder(firstInteractionId,
-                event.getUser().getId(), event.getGuild().getId());
             try (SqlSession session = this.sqlSessionFactory.openSession()) {
                 DraftReminderMapper mapper = session.getMapper(DraftReminderMapper.class);
-                mapper.createOne(draftReminder);
+
+                DraftReminderCreate reminderCreate = new DraftReminderCreate(firstInteractionId,
+                    event.getUser().getId(), event.getGuild().getId());
+                mapper.createOne(reminderCreate);
+
                 session.commit();
             }
 
@@ -100,9 +104,11 @@ public class JDAListener extends ListenerAdapter
             // Save participants to DB
             try (SqlSession session = this.sqlSessionFactory.openSession()) {
                 DraftReminderMapper mapper = session.getMapper(DraftReminderMapper.class);
-                DraftReminder draftReminder = mapper.getOneByFirstInteractionId(firstInteractionId);
-                draftReminder.setParticipantUserIds(event.getValues());
-                mapper.updateOne(draftReminder);
+
+                ParticipantUserIdsString participants = new ParticipantUserIdsString(event.getValues());
+                DraftReminderUpdate reminderUpdate = new DraftReminderUpdate(firstInteractionId, participants, null, null);
+                mapper.updateOne(reminderUpdate);
+
                 session.commit();
             }
 
@@ -142,11 +148,13 @@ public class JDAListener extends ListenerAdapter
             ParticipantUserIdsString participants;
             try (SqlSession session = this.sqlSessionFactory.openSession()) {
                 DraftReminderMapper mapper = session.getMapper(DraftReminderMapper.class);
+                
+                DraftReminderUpdate reminderUpdate = new DraftReminderUpdate(firstInteractionId, null, title, content);
+                mapper.updateOne(reminderUpdate);
+
                 DraftReminder draftReminder = mapper.getOneByFirstInteractionId(firstInteractionId);
                 participants = draftReminder.getParticipantUserIdsAsClass();
-                draftReminder.setTitle(title);
-                draftReminder.setDescription(content);
-                mapper.updateOne(draftReminder);
+
                 session.commit();
             }
 
@@ -172,10 +180,10 @@ public class JDAListener extends ListenerAdapter
 
             try (SqlSession session = this.sqlSessionFactory.openSession()) {
                 DraftReminderMapper draftReminderMapper = session.getMapper(DraftReminderMapper.class);
-                DraftReminder draftReminder = draftReminderMapper.getOneByFirstInteractionId(firstInteractionId);
-
-                Reminder reminder = Reminder.fromDraft(draftReminder);
                 ReminderMapper reminderMapper = session.getMapper(ReminderMapper.class);
+
+                DraftReminder draftReminder = draftReminderMapper.getOneByFirstInteractionId(firstInteractionId);
+                Reminder reminder = Reminder.fromDraft(draftReminder);
                 reminderMapper.createOne(reminder);
 
                 session.commit();

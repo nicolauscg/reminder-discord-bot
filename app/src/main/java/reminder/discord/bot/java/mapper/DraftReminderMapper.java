@@ -6,8 +6,11 @@ import org.apache.ibatis.annotations.Result;
 import org.apache.ibatis.annotations.ResultMap;
 import org.apache.ibatis.annotations.Results;
 import org.apache.ibatis.annotations.Select;
-import org.apache.ibatis.annotations.Update;
+import org.apache.ibatis.annotations.UpdateProvider;
+import org.apache.ibatis.jdbc.SQL;
 
+import reminder.discord.bot.java.dto.DraftReminderCreate;
+import reminder.discord.bot.java.dto.DraftReminderUpdate;
 import reminder.discord.bot.java.model.DraftReminder;
 
 public interface DraftReminderMapper {
@@ -26,11 +29,26 @@ public interface DraftReminderMapper {
     @ResultMap("draftReminderMap")
     @Insert("INSERT INTO draft_reminder(first_interaction_id, user_id, guild_id, updated_at) " +
         "VALUES (#{firstInteractionId}, #{userId}, #{guildId}, current_timestamp)")
-    public void createOne(DraftReminder draftReminder);
+    public void createOne(DraftReminderCreate create);
 
     @ResultMap("draftReminderMap")
-    @Update("UPDATE draft_reminder SET participant_user_ids = #{participantUserIds}, title = #{title}, " +
-        "description = #{description}, updated_at = current_timestamp " +
-        "WHERE first_interaction_id = #{firstInteractionId}")
-    public void updateOne(DraftReminder draftReminder);
+    @UpdateProvider(type = DraftReminderMapper.class, method = "updateOneSql")
+    public void updateOne(DraftReminderUpdate update);
+
+    public static String updateOneSql(final DraftReminderUpdate update) {
+        return new SQL(){{
+            UPDATE("draft_reminder");
+            if (update.getParticipantUserIds() != null) {
+                SET("participant_user_ids = #{participantUserIds}");
+            }
+            if (update.getTitle() != null) {
+                SET("title = #{title}");
+            }
+            if (update.getDescription() != null) {
+                SET("description = #{description}");
+            }
+            SET("updated_at = current_timestamp");
+            WHERE("first_interaction_id = #{firstInteractionId}");
+        }}.toString();
+    }
 }
