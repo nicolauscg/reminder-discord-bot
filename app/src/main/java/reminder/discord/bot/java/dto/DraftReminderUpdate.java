@@ -8,9 +8,6 @@ public class DraftReminderUpdate {
     private String title;
     private String description;
 
-    public DraftReminderUpdate() {
-    }
-
     public DraftReminderUpdate(
             String firstInteractionId,
             ParticipantUserIdsString participantUserIds,

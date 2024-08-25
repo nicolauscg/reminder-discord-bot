@@ -5,9 +5,6 @@ public class DraftReminderCreate {
     private String userId;
     private String guildId;
 
-    public DraftReminderCreate() {
-    }
-
     public DraftReminderCreate(String firstInteractionId, String userId, String guildId) {
         this.firstInteractionId = firstInteractionId;
         this.userId = userId;
