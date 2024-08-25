@@ -22,11 +22,11 @@ import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
 import net.dv8tion.jda.api.interactions.modals.Modal;
 import reminder.discord.bot.java.dto.DraftReminderCreate;
 import reminder.discord.bot.java.dto.DraftReminderUpdate;
+import reminder.discord.bot.java.dto.ReminderCreate;
 import reminder.discord.bot.java.mapper.DraftReminderMapper;
 import reminder.discord.bot.java.mapper.ReminderMapper;
 import reminder.discord.bot.java.model.DraftReminder;
 import reminder.discord.bot.java.model.ParticipantUserIdsString;
-import reminder.discord.bot.java.model.Reminder;
 
 public class JDAListener extends ListenerAdapter 
 {
@@ -183,8 +183,8 @@ public class JDAListener extends ListenerAdapter
                 ReminderMapper reminderMapper = session.getMapper(ReminderMapper.class);
 
                 DraftReminder draftReminder = draftReminderMapper.getOneByFirstInteractionId(firstInteractionId);
-                Reminder reminder = Reminder.fromDraft(draftReminder);
-                reminderMapper.createOne(reminder);
+                ReminderCreate reminderCreate = ReminderCreate.fromDraft(draftReminder);
+                reminderMapper.createOne(reminderCreate);
 
                 session.commit();
             }

@@ -4,7 +4,7 @@ import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Result;
 import org.apache.ibatis.annotations.Results;
 
-import reminder.discord.bot.java.model.Reminder;
+import reminder.discord.bot.java.dto.ReminderCreate;
 
 public interface ReminderMapper {
     @Results(id = "reminderMap", value = {
@@ -16,6 +16,6 @@ public interface ReminderMapper {
         @Result(property = "createdAt", column = "created_at")
     })
     @Insert("INSERT INTO reminder(user_id, guild_id, title, description, is_notified_after_complete, created_at) " +
-        "VALUES (#{userId}, #{guildId}, #{title}, #{description}, false, current_timestamp)")
-    public void createOne(Reminder reminder);
+        "VALUES (#{userId}, #{guildId}, #{title}, #{description}, #{isNotifiedAfterComplete}, current_timestamp)")
+    public void createOne(ReminderCreate create);
 }
