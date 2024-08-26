@@ -1,7 +1,5 @@
 package reminder.discord.bot.java.dto;
 
-import reminder.discord.bot.java.model.DraftReminder;
-
 public class ReminderCreate {
     private String userId;
     private String guildId;
@@ -15,15 +13,6 @@ public class ReminderCreate {
         this.title = title;
         this.description = description;
         this.isNotifiedAfterComplete = false;
-    }
-
-    public static ReminderCreate fromDraft(DraftReminder draftReminder) {
-        return new ReminderCreate(
-            draftReminder.getUserId(),
-            draftReminder.getGuildId(),
-            draftReminder.getTitle(),
-            draftReminder.getDescription()
-        );
     }
 
     public String getUserId() {

@@ -22,6 +22,7 @@ import net.dv8tion.jda.api.utils.ChunkingFilter;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import reminder.discord.bot.java.mapper.DraftReminderMapper;
 import reminder.discord.bot.java.mapper.ReminderMapper;
+import reminder.discord.bot.java.mapper.ReminderParticipantMapper;
 
 public class App {
     public static void main(String[] args) throws Exception {
@@ -69,6 +70,7 @@ public class App {
         Configuration configuration = new Configuration(environment);
         configuration.addMapper(DraftReminderMapper.class);
         configuration.addMapper(ReminderMapper.class);
+        configuration.addMapper(ReminderParticipantMapper.class);
         SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(configuration);
 
         /*

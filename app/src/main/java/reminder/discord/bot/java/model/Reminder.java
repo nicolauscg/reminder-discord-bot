@@ -1,6 +1,6 @@
 package reminder.discord.bot.java.model;
 
-import java.security.Timestamp;
+import java.time.Instant;
 
 public class Reminder {
     private Integer id;
@@ -9,19 +9,9 @@ public class Reminder {
     private String title;
     private String description;
     private Boolean isNotifiedAfterComplete;
-    private Timestamp createdAt;
+    private Instant createdAt;
 
     public Reminder() {
-    }
-
-    public static Reminder fromDraft(DraftReminder draftReminder) {
-        Reminder reminder = new Reminder();
-        reminder.setUserId(draftReminder.getUserId());
-        reminder.setGuildId(draftReminder.getGuildId());
-        reminder.setTitle(draftReminder.getTitle());
-        reminder.setDescription(draftReminder.getDescription());
-        reminder.setIsNotifiedAfterComplete(false);
-        return reminder;
     }
 
     public Integer getId() {
@@ -72,11 +62,11 @@ public class Reminder {
         this.isNotifiedAfterComplete = isNotifiedAfterComplete;
     }
 
-    public Timestamp getCreatedAt() {
+    public Instant getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Timestamp createdAt) {
+    public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
     }
 }

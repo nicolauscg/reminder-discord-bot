@@ -1,5 +1,7 @@
 package reminder.discord.bot.java;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import javax.annotation.Nonnull;
@@ -22,9 +24,11 @@ import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
 import net.dv8tion.jda.api.interactions.modals.Modal;
 import reminder.discord.bot.java.dto.DraftReminderCreate;
 import reminder.discord.bot.java.dto.DraftReminderUpdate;
-import reminder.discord.bot.java.dto.ReminderCreate;
+import reminder.discord.bot.java.dto.ReminderAndParticipants;
+import reminder.discord.bot.java.dto.ReminderParticipantCreate;
 import reminder.discord.bot.java.mapper.DraftReminderMapper;
 import reminder.discord.bot.java.mapper.ReminderMapper;
+import reminder.discord.bot.java.mapper.ReminderParticipantMapper;
 import reminder.discord.bot.java.model.DraftReminder;
 import reminder.discord.bot.java.model.ParticipantUserIdsString;
 
@@ -181,10 +185,21 @@ public class JDAListener extends ListenerAdapter
             try (SqlSession session = this.sqlSessionFactory.openSession()) {
                 DraftReminderMapper draftReminderMapper = session.getMapper(DraftReminderMapper.class);
                 ReminderMapper reminderMapper = session.getMapper(ReminderMapper.class);
+                ReminderParticipantMapper reminderParticipantMapper = session.getMapper(ReminderParticipantMapper.class);
 
+                // Create Reminder
                 DraftReminder draftReminder = draftReminderMapper.getOneByFirstInteractionId(firstInteractionId);
-                ReminderCreate reminderCreate = ReminderCreate.fromDraft(draftReminder);
-                reminderMapper.createOne(reminderCreate);
+                ReminderAndParticipants reminderAndParticipants = new ReminderAndParticipants(
+                    draftReminder, Instant.now().plus(1, ChronoUnit.HOURS));
+                Integer reminderId = reminderMapper.createOne(reminderAndParticipants.getReminderCreate());
+
+                // Create multiple ReminderParticipant,
+                // reminderId is set manually as they are null from getParticipantsCreate()
+                List<ReminderParticipantCreate> participantsCreate = reminderAndParticipants.getParticipantsCreate();
+                for (ReminderParticipantCreate participantCreate : participantsCreate) {
+                    participantCreate.setReminderId(reminderId);
+                }
+                reminderParticipantMapper.createMany(participantsCreate);
 
                 session.commit();
             }
