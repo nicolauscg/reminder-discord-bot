@@ -1,7 +1,6 @@
 package reminder.discord.bot.java;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import javax.annotation.Nonnull;
@@ -190,7 +189,7 @@ public class JDAListener extends ListenerAdapter
                 // Create Reminder
                 DraftReminder draftReminder = draftReminderMapper.getOneByFirstInteractionId(firstInteractionId);
                 ReminderAndParticipants reminderAndParticipants = new ReminderAndParticipants(
-                    draftReminder, Instant.now().plus(1, ChronoUnit.HOURS));
+                    draftReminder, Instant.now());
                 Integer reminderId = reminderMapper.createOne(reminderAndParticipants.getReminderCreate());
 
                 // Create multiple ReminderParticipant,
