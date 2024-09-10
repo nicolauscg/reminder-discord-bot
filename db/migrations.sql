@@ -32,3 +32,30 @@ CREATE TABLE IF NOT EXISTS reminder_participant(
 /* liquibase rollback
 drop table reminder_participant, reminder, draft_reminder;
 */
+
+--changeset nicolauscg:2
+-- update timestamp columns to have timezone
+ALTER TABLE draft_reminder
+    ALTER COLUMN updated_at SET DATA TYPE TIMESTAMPTZ,
+    ALTER COLUMN updated_at SET NOT NULL;
+ALTER TABLE reminder
+    ALTER COLUMN created_at SET DATA TYPE TIMESTAMPTZ,
+    ALTER COLUMN created_at SET NOT NULL;
+ALTER TABLE reminder_participant
+    ALTER COLUMN last_reminded_at SET DATA TYPE TIMESTAMPTZ;
+ALTER TABLE reminder_participant
+    ALTER COLUMN next_remind_at SET DATA TYPE TIMESTAMPTZ,
+    ALTER COLUMN next_remind_at SET NOT NULL;
+/* liquibase rollback
+ALTER TABLE draft_reminder
+    ALTER COLUMN updated_at SET DATA TYPE TIMESTAMP,
+    ALTER COLUMN updated_at SET NOT NULL;
+ALTER TABLE reminder
+    ALTER COLUMN created_at SET DATA TYPE TIMESTAMP,
+    ALTER COLUMN created_at SET NOT NULL;
+ALTER TABLE reminder_participant
+    ALTER COLUMN last_reminded_at SET DATA TYPE TIMESTAMP;
+ALTER TABLE reminder_participant
+    ALTER COLUMN next_remind_at SET DATA TYPE TIMESTAMP,
+    ALTER COLUMN next_remind_at SET NOT NULL;
+*/
