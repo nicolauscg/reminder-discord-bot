@@ -60,4 +60,11 @@ public class ReminderParticipant {
     public void setNextRemindAt(Instant nextRemindAt) {
         this.nextRemindAt = nextRemindAt;
     }
+
+    @Override
+    public String toString() {
+        return "ReminderParticipant [reminderId=" + reminderId + ", userId=" + userId + ", isComplete=" + isComplete
+                + ", remindedCount=" + remindedCount + ", lastRemindedAt=" + lastRemindedAt + ", nextRemindAt="
+                + nextRemindAt + "]";
+    }
 }
