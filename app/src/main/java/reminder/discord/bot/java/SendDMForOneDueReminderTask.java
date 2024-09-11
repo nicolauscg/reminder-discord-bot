@@ -42,13 +42,15 @@ public class SendDMForOneDueReminderTask implements Runnable {
             }
             Reminder reminder = reminderMapper.getOneById(participant.getReminderId());
             User participantDiscordUser = jda.getUserById(participant.getUserId());
+            User authorDiscordUser = jda.getUserById(reminder.getUserId());
 
             /*
              * Send the Discord DM
              */
             PrivateChannel discordDmChannel = participantDiscordUser.openPrivateChannel().complete();
-            // TODO improve DM message format
-            discordDmChannel.sendMessage(reminder.getTitle() + ";" + reminder.getDescription()).complete();
+            String message = String.format("You have a reminder from %s about %s.\nReminder message:\n%s",
+                authorDiscordUser.getEffectiveName(), reminder.getTitle(), reminder.getDescription());
+            discordDmChannel.sendMessage(message).complete();
             System.out.printf("sent a reminder with id %d to discord user id %s\n", reminder.getId(), participantDiscordUser.getId());
 
             /*
