@@ -2,6 +2,9 @@ package reminder.discord.bot.java;
 
 import java.io.InputStream;
 import java.util.Properties;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.ibatis.mapping.Environment;
 import org.apache.ibatis.session.Configuration;
@@ -76,21 +79,28 @@ public class App {
         /*
          * Run Discord bot
          */ 
-        JDA api = JDABuilder.createDefault(botToken)
+        JDA jdaApi = JDABuilder.createDefault(botToken)
             .setChunkingFilter(ChunkingFilter.ALL)
             .setMemberCachePolicy(MemberCachePolicy.ALL)
             .enableIntents(GatewayIntent.GUILD_MEMBERS)
             .addEventListeners(new JDAListener(sqlSessionFactory))
             .build();
-        api.awaitReady();
+            jdaApi.awaitReady();
         System.out.println("Bot is ready");
 
         /*
          * Register slash commands
          */ 
-        Guild devGuild = api.getGuildById(devGuildId);
+        Guild devGuild = jdaApi.getGuildById(devGuildId);
         SlashCommandData createReminderCmd = Commands.slash("createreminder", "Creates a reminder")
             .setGuildOnly(true);
         devGuild.updateCommands().addCommands(createReminderCmd).queue();
+
+        /*
+         * Run reminder service (handles sending Discord DMs to users)
+         */
+        ScheduledExecutorService reminderExecSvc = Executors.newSingleThreadScheduledExecutor();
+        SendDMForOneDueReminderTask task = new SendDMForOneDueReminderTask(sqlSessionFactory, jdaApi);
+        reminderExecSvc.scheduleWithFixedDelay(task, 1, 60, TimeUnit.SECONDS);
     }
 }

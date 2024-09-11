@@ -5,9 +5,9 @@ import org.apache.ibatis.annotations.Results;
 import org.apache.ibatis.annotations.Select;
 
 import reminder.discord.bot.java.dto.ReminderCreate;
+import reminder.discord.bot.java.model.Reminder;
 
 public interface ReminderMapper {
-    // @Select is used instead of @Insert as the returning clause is used to return the inserted row id.
     @Results(id = "reminderMap", value = {
         @Result(property = "id", column = "id"),
         @Result(property = "userId", column = "user_id"),
@@ -16,6 +16,10 @@ public interface ReminderMapper {
         @Result(property = "isNotifiedAfterComplete", column = "is_notified_after_complete"),
         @Result(property = "createdAt", column = "created_at")
     })
+    @Select({"SELECT * FROM reminder WHERE id = #{id}"})
+    public Reminder getOneById(Integer id);
+
+    // @Select is used instead of @Insert as the returning clause is used to return the inserted row id.
     @Select({"INSERT INTO reminder(user_id, guild_id, title, description, is_notified_after_complete, created_at)",
         "VALUES (#{userId}, #{guildId}, #{title}, #{description}, #{isNotifiedAfterComplete}, current_timestamp)",
         "RETURNING id"})
