@@ -92,9 +92,10 @@ public class App {
          * Register slash commands
          */ 
         Guild devGuild = jdaApi.getGuildById(devGuildId);
-        SlashCommandData createReminderCmd = Commands.slash("createreminder", "Creates a reminder")
+        SlashCommandData createReminderCmd = Commands.slash("createreminder", "Create a reminder")
             .setGuildOnly(true);
-        devGuild.updateCommands().addCommands(createReminderCmd).queue();
+        SlashCommandData completeReminderCmd = Commands.slash("completereminder", "Mark a reminder as completed");
+        devGuild.updateCommands().addCommands(createReminderCmd, completeReminderCmd).queue();
 
         /*
          * Run reminder service (handles sending Discord DMs to users)

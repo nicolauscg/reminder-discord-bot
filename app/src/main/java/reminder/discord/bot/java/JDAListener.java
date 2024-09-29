@@ -1,7 +1,11 @@
 package reminder.discord.bot.java;
 
 import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Nonnull;
 
@@ -9,6 +13,7 @@ import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
@@ -25,11 +30,13 @@ import reminder.discord.bot.java.dto.DraftReminderCreate;
 import reminder.discord.bot.java.dto.DraftReminderUpdate;
 import reminder.discord.bot.java.dto.ReminderAndParticipants;
 import reminder.discord.bot.java.dto.ReminderParticipantCreate;
+import reminder.discord.bot.java.dto.ReminderParticipantUpdate;
 import reminder.discord.bot.java.mapper.DraftReminderMapper;
 import reminder.discord.bot.java.mapper.ReminderMapper;
 import reminder.discord.bot.java.mapper.ReminderParticipantMapper;
 import reminder.discord.bot.java.model.DraftReminder;
 import reminder.discord.bot.java.model.ParticipantUserIdsString;
+import reminder.discord.bot.java.model.Reminder;
 
 public class JDAListener extends ListenerAdapter 
 {
@@ -38,6 +45,9 @@ public class JDAListener extends ListenerAdapter
     static final String MODAL_TITLE_LABEL = "create-reminder-title";
     static final String MODAL_CONTENT_LABEL = "create-reminder-content";
     static final String CONFIRM_LABEL = "create-reminder-confirm";
+
+    static final String SELECT_REMINDER_LABEL = "complete-reminder-select";
+    static final String CONFIRM_COMPLETE_LABEL = "complete-reminder-confirm";
 
     private SqlSessionFactory sqlSessionFactory;
 
@@ -48,53 +58,90 @@ public class JDAListener extends ListenerAdapter
     @Override
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event)
     {
-        switch (event.getName())
-        {
-        case "createreminder":
-            event.deferReply(true).queue();
+        switch (event.getName()) {
+            case "createreminder": {
+                
+                event.deferReply(true).queue();
 
-            // Error out if command not run on a guild
-            if (event.getGuild() == null) {
-                event.getHook().sendMessage("This command must be run in a server and not in a DM");
-                return;
+                // Error out if command not run on a guild
+                if (event.getGuild() == null) {
+                    event.getHook().sendMessage("This command must be run in a server and not in a DM");
+                    return;
+                }
+
+                /*
+                * Save a draft reminder to the DB with the information available so far
+                */
+                String firstInteractionId = event.getId();
+                try (SqlSession session = this.sqlSessionFactory.openSession()) {
+                    DraftReminderMapper mapper = session.getMapper(DraftReminderMapper.class);
+
+                    DraftReminderCreate reminderCreate = new DraftReminderCreate(firstInteractionId,
+                        event.getUser().getId(), event.getGuild().getId());
+                    mapper.createOne(reminderCreate);
+
+                    session.commit();
+                }
+
+                /*
+                * Respond with a multi select about reminder's participants 
+                */
+                List<Member> guildMembers = event.getGuild().getMembers();
+                // Put the first interaction id in the custom id, the interaction id will be
+                // passed throughout the create reminder interaction chain so later interactions
+                // can identify which reminder they are working on
+                CustomId customId = new CustomId(SELECT_PARTICIPANT_LABEL, firstInteractionId);
+                Builder selectMenuBuilder = StringSelectMenu.create(customId.toString())
+                    .setPlaceholder("Select participants of reminder (Step 1 of 3)")
+                    .setMinValues(1)
+                    .setMaxValues(guildMembers.size());
+                for (Member mem : guildMembers) {
+                    String optVal = String.format("%s%s%s",
+                        mem.getId(), ParticipantUserIdsString.ATTR_SEPARATOR, mem.getEffectiveName());
+                    selectMenuBuilder = selectMenuBuilder.addOption(mem.getEffectiveName(), optVal);
+                }
+                event.getHook().sendMessageComponents(ActionRow.of(selectMenuBuilder.build())).queue();
+                break;
             }
+            case "completereminder": {
+                event.deferReply(true).queue();
 
-            /*
-             * Save a draft reminder to the DB with the information available so far
-             */
-            String firstInteractionId = event.getId();
-            try (SqlSession session = this.sqlSessionFactory.openSession()) {
-                DraftReminderMapper mapper = session.getMapper(DraftReminderMapper.class);
+                String userId = event.getUser().getId();
+                List<Reminder> uncompletedReminders;
 
-                DraftReminderCreate reminderCreate = new DraftReminderCreate(firstInteractionId,
-                    event.getUser().getId(), event.getGuild().getId());
-                mapper.createOne(reminderCreate);
+                try (SqlSession session = this.sqlSessionFactory.openSession()) {
+                    ReminderMapper mapper = session.getMapper(ReminderMapper.class);
+                    uncompletedReminders = mapper.getManyUncompletedReminderByParticipantUserId(userId);
+                }
+                
+                // Return early if no uncompleted reminders
+                if (uncompletedReminders.size() == 0) {
+                    event.getHook().sendMessage("There are no reminders to complete");
+                    return;
+                }
 
-                session.commit();
+                /**
+                 * Reply with a select menu of reminders to complete
+                 */
+                Builder selectMenuBuilder = StringSelectMenu.create(SELECT_REMINDER_LABEL)
+                    .setPlaceholder("Select a reminder to view its detail then mark it as complete");
+                Map<String, String> userIdToUserName = new HashMap<>();
+                for (Reminder reminder : uncompletedReminders) {
+                    String username = userIdToUserName.get(reminder.getUserId());
+                    if (username == null) {
+                        username = event.getJDA().getUserById(reminder.getUserId()).getEffectiveName();
+                        userIdToUserName.put(reminder.getUserId(), username);
+                    }
+                    String optionLabel = String.format("%s from %s", reminder.getTitle(), username);
+                    selectMenuBuilder = selectMenuBuilder.addOption(optionLabel, reminder.getId().toString());
+                }
+                event.getHook().sendMessageComponents(ActionRow.of(selectMenuBuilder.build())).queue();
+                break;
             }
-
-            /*
-             * Respond with a multi select about reminder's participants 
-             */
-            List<Member> guildMembers = event.getGuild().getMembers();
-            // Put the first interaction id in the custom id, the interaction id will be
-            // passed throughout the create reminder interaction chain so later interactions
-            // can identify which reminder they are working on
-            CustomId customId = new CustomId(SELECT_PARTICIPANT_LABEL, firstInteractionId);
-            Builder selectMenuBuilder = StringSelectMenu.create(customId.toString())
-                .setPlaceholder("Select participants of reminder (Step 1 of 3)")
-                .setMinValues(1)
-                .setMaxValues(guildMembers.size());
-            for (Member mem : guildMembers) {
-                String optVal = String.format("%s%s%s",
-                    mem.getId(), ParticipantUserIdsString.ATTR_SEPARATOR, mem.getEffectiveName());
-                selectMenuBuilder = selectMenuBuilder.addOption(mem.getEffectiveName(), optVal);
+            default: {
+                event.reply(String.format("Command %s is not recognized", event.getName()))
+                    .setEphemeral(true).queue();
             }
-            event.getHook().sendMessageComponents(ActionRow.of(selectMenuBuilder.build())).queue();
-            break;
-        default:
-            event.reply(String.format("Command %s is not recognized", event.getName()))
-                .setEphemeral(true).queue();
         }
     }
 
@@ -131,6 +178,26 @@ public class JDAListener extends ListenerAdapter
                     .addComponents(ActionRow.of(title), ActionRow.of(content))
                     .build();
             event.replyModal(modal).queue();
+        } else if (eventCustomId.label.equals(SELECT_REMINDER_LABEL)) {
+            event.deferReply(true).queue();
+            Integer reminderId = Integer.parseInt(event.getValues().get(0));
+            Reminder reminder;
+
+            try (SqlSession session = this.sqlSessionFactory.openSession()) {
+                ReminderMapper mapper = session.getMapper(ReminderMapper.class);
+                reminder = mapper.getOneById(reminderId);
+            }
+
+            User authorDiscordUser = event.getJDA().getUserById(reminder.getUserId());
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM").withZone(ZoneOffset.UTC);
+            
+            String reminderDetail = String.format("Reminder %s from %s created on %s\n\n%s",
+                reminder.getTitle(), authorDiscordUser.getEffectiveName(), formatter.format(reminder.getCreatedAt()), reminder.getDescription());
+            CustomId customId = new CustomId(CONFIRM_COMPLETE_LABEL, reminderId.toString());
+            event.getHook().sendMessage(reminderDetail).queue((message) -> {
+                event.getHook().editOriginalComponents(
+                    ActionRow.of(Button.primary(customId.toString(), "Complete reminder"))).queue();
+            });
         }
     }
 
@@ -205,6 +272,23 @@ public class JDAListener extends ListenerAdapter
             
             event.getHook().sendMessage(
                 String.format("%s created a reminder", event.getUser().getEffectiveName())).queue();
+        } else if (eventCustomId.label.equals(CONFIRM_COMPLETE_LABEL)) {
+            // Use non-ephemeral message to acknowledge the completed reminder later
+            event.deferReply(false).queue();
+            Integer reminderId = Integer.parseInt(eventCustomId.firstIntrId);
+
+            try (SqlSession session = this.sqlSessionFactory.openSession()) {
+                ReminderParticipantMapper mapper = session.getMapper(ReminderParticipantMapper.class);
+                ReminderParticipantUpdate update = new ReminderParticipantUpdate(
+                    reminderId,
+                    event.getUser().getId(),
+                    true
+                );
+                mapper.updateOne(update);
+                session.commit();
+            }
+            event.getHook().sendMessage(
+                String.format("%s has completed a reminder", event.getUser().getEffectiveName())).queue();
         }
     }
 }
