@@ -6,13 +6,16 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.awt.Color;
 
 import javax.annotation.Nonnull;
 
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -26,6 +29,7 @@ import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu.B
 import net.dv8tion.jda.api.interactions.components.text.TextInput;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
 import net.dv8tion.jda.api.interactions.modals.Modal;
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 import reminder.discord.bot.java.dto.DraftReminderCreate;
 import reminder.discord.bot.java.dto.DraftReminderUpdate;
 import reminder.discord.bot.java.dto.ReminderAndParticipants;
@@ -60,7 +64,6 @@ public class JDAListener extends ListenerAdapter
     {
         switch (event.getName()) {
             case "createreminder": {
-                
                 event.deferReply(true).queue();
 
                 // Error out if command not run on a guild
@@ -92,7 +95,7 @@ public class JDAListener extends ListenerAdapter
                 // can identify which reminder they are working on
                 CustomId customId = new CustomId(SELECT_PARTICIPANT_LABEL, firstInteractionId);
                 Builder selectMenuBuilder = StringSelectMenu.create(customId.toString())
-                    .setPlaceholder("Select participants of reminder (Step 1 of 3)")
+                    .setPlaceholder("Select participants")
                     .setMinValues(1)
                     .setMaxValues(guildMembers.size());
                 for (Member mem : guildMembers) {
@@ -100,7 +103,21 @@ public class JDAListener extends ListenerAdapter
                         mem.getId(), ParticipantUserIdsString.ATTR_SEPARATOR, mem.getEffectiveName());
                     selectMenuBuilder = selectMenuBuilder.addOption(mem.getEffectiveName(), optVal);
                 }
-                event.getHook().sendMessageComponents(ActionRow.of(selectMenuBuilder.build())).queue();
+                
+                MessageEmbed embedMsg = new EmbedBuilder()
+                    .setColor(Color.WHITE)
+                    .setTitle("Select participants to remind (Step 1 of 3)")
+                    .appendDescription("A participant will be reminded every day via DM until he or she completes it with the /completereminder command.")
+                    .appendDescription("\n:warning: Only interact with the select menu below once.")
+                    .build();
+
+                event.getHook().sendMessage(
+                    new MessageCreateBuilder()
+                        .addEmbeds(embedMsg)
+                        .addComponents(ActionRow.of(selectMenuBuilder.build()))
+                        .build()
+                ).queue();
+
                 break;
             }
             case "completereminder": {
@@ -109,6 +126,7 @@ public class JDAListener extends ListenerAdapter
                 String userId = event.getUser().getId();
                 List<Reminder> uncompletedReminders;
 
+                // Get uncompleted reminders
                 try (SqlSession session = this.sqlSessionFactory.openSession()) {
                     ReminderMapper mapper = session.getMapper(ReminderMapper.class);
                     uncompletedReminders = mapper.getManyUncompletedReminderByParticipantUserId(userId);
@@ -116,7 +134,15 @@ public class JDAListener extends ListenerAdapter
                 
                 // Return early if no uncompleted reminders
                 if (uncompletedReminders.size() == 0) {
-                    event.getHook().sendMessage("There are no reminders to complete");
+                    MessageEmbed embedMsg = new EmbedBuilder()
+                        .setColor(Color.WHITE)
+                        .setDescription("There are no reminders to complete")
+                        .build();
+                    event.getHook().sendMessage(
+                        new MessageCreateBuilder()
+                            .addEmbeds(embedMsg)
+                            .build()
+                    ).queue();
                     return;
                 }
 
@@ -124,7 +150,7 @@ public class JDAListener extends ListenerAdapter
                  * Reply with a select menu of reminders to complete
                  */
                 Builder selectMenuBuilder = StringSelectMenu.create(SELECT_REMINDER_LABEL)
-                    .setPlaceholder("Select a reminder to view its detail then mark it as complete");
+                    .setPlaceholder("Select a reminder");
                 Map<String, String> userIdToUserName = new HashMap<>();
                 for (Reminder reminder : uncompletedReminders) {
                     String username = userIdToUserName.get(reminder.getUserId());
@@ -135,7 +161,19 @@ public class JDAListener extends ListenerAdapter
                     String optionLabel = String.format("%s from %s", reminder.getTitle(), username);
                     selectMenuBuilder = selectMenuBuilder.addOption(optionLabel, reminder.getId().toString());
                 }
-                event.getHook().sendMessageComponents(ActionRow.of(selectMenuBuilder.build())).queue();
+                
+                MessageEmbed embedMsg = new EmbedBuilder()
+                    .setColor(Color.WHITE)
+                    .setTitle("Select a reminder to view its details (Step 1 of 2)")
+                    .build();
+                
+                event.getHook().sendMessage(
+                    new MessageCreateBuilder()
+                        .addEmbeds(embedMsg)
+                        .addComponents(ActionRow.of(selectMenuBuilder.build()))
+                        .build()
+                ).queue();
+
                 break;
             }
             default: {
@@ -164,12 +202,12 @@ public class JDAListener extends ListenerAdapter
 
             // Looks like deferReply() cannot be used when replying with a modal 
             TextInput title = TextInput.create(MODAL_TITLE_LABEL, "Title", TextInputStyle.SHORT)
-                .setPlaceholder("Title e.g. Dinner at ...")
+                .setPlaceholder("Title")
                 .setMaxLength(50)
                 .setRequired(true)
                 .build();
             TextInput content = TextInput.create(MODAL_CONTENT_LABEL, "Content", TextInputStyle.PARAGRAPH)
-                    .setPlaceholder("Content e.g. List who owes how much for a shared expense")
+                    .setPlaceholder("Content")
                     .setMaxLength(500)
                     .setRequired(true)
                     .build();
@@ -190,14 +228,24 @@ public class JDAListener extends ListenerAdapter
 
             User authorDiscordUser = event.getJDA().getUserById(reminder.getUserId());
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM").withZone(ZoneOffset.UTC);
-            
-            String reminderDetail = String.format("Reminder %s from %s created on %s\n\n%s",
-                reminder.getTitle(), authorDiscordUser.getEffectiveName(), formatter.format(reminder.getCreatedAt()), reminder.getDescription());
+
+            MessageEmbed embedMsg = new EmbedBuilder()
+                .setColor(Color.WHITE)
+                .setTitle("Confirm complete reminder (Step 2 of 2)")
+                .addField("Title", reminder.getTitle(), false)
+                .addField("Author", authorDiscordUser.getEffectiveName(), true)
+                .addField("Create date", formatter.format(reminder.getCreatedAt()), true)
+                .addField("Content", reminder.getDescription(), false)
+                .appendDescription("\n:warning: Only interact with the button below once.")
+                .build();
+                
             CustomId customId = new CustomId(CONFIRM_COMPLETE_LABEL, reminderId.toString());
-            event.getHook().sendMessage(reminderDetail).queue((message) -> {
-                event.getHook().editOriginalComponents(
-                    ActionRow.of(Button.primary(customId.toString(), "Complete reminder"))).queue();
-            });
+            event.getHook().sendMessage(
+                new MessageCreateBuilder()
+                    .addEmbeds(embedMsg)
+                    .addComponents(ActionRow.of(Button.primary(customId.toString(), "Complete reminder")))
+                    .build()
+            ).queue();
         }
     }
 
@@ -227,16 +275,23 @@ public class JDAListener extends ListenerAdapter
 
                 session.commit();
             }
+            
+            MessageEmbed embedMsg = new EmbedBuilder()
+                .setColor(Color.WHITE)
+                .setTitle("Confirm reminder details (Step 3 of 3)")
+                .addField("Participants", String.join(", ", participants.getNames()), false)
+                .addField("Title", title, false)
+                .addField("Content", content, false)
+                .appendDescription("\n:warning: Only interact with the button below once.")
+                .build();
 
-            String summary = "Confirm reminder details (Step 3 of 3)" +
-                "\nParticipants: " + String.join(", ", participants.getNames()) +
-                "\nTitle: " + title +
-                "\nContent: " + content;
             CustomId customId = new CustomId(CONFIRM_LABEL, eventCustomId.firstIntrId);
-            event.getHook().sendMessage(summary).queue((message) -> {
-                event.getHook().editOriginalComponents(
-                    ActionRow.of(Button.primary(customId.toString(), "Create reminder"))).queue();
-            });
+            event.getHook().sendMessage(
+                new MessageCreateBuilder()
+                    .addEmbeds(embedMsg)
+                    .addComponents(ActionRow.of(Button.primary(customId.toString(), "Create reminder")))
+                    .build()
+            ).queue();
         }
     }
 
@@ -270,8 +325,15 @@ public class JDAListener extends ListenerAdapter
                 session.commit();
             }
             
+            MessageEmbed embedMsg = new EmbedBuilder()
+                .setColor(Color.WHITE)
+                .setDescription(String.format(":alarm_clock: %s created a reminder", event.getUser().getEffectiveName()))
+                .build();
             event.getHook().sendMessage(
-                String.format("%s created a reminder", event.getUser().getEffectiveName())).queue();
+                new MessageCreateBuilder()
+                    .addEmbeds(embedMsg)
+                    .build()
+            ).queue();
         } else if (eventCustomId.label.equals(CONFIRM_COMPLETE_LABEL)) {
             // Use non-ephemeral message to acknowledge the completed reminder later
             event.deferReply(false).queue();
@@ -287,8 +349,16 @@ public class JDAListener extends ListenerAdapter
                 mapper.updateOne(update);
                 session.commit();
             }
+            
+            MessageEmbed embedMsg = new EmbedBuilder()
+                .setColor(Color.WHITE)
+                .setDescription(String.format(":white_check_mark: %s has completed a reminder", event.getUser().getEffectiveName()))
+                .build();
             event.getHook().sendMessage(
-                String.format("%s has completed a reminder", event.getUser().getEffectiveName())).queue();
+                new MessageCreateBuilder()
+                    .addEmbeds(embedMsg)
+                    .build()
+            ).queue();
         }
     }
 }
