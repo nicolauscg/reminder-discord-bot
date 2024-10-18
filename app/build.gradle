@@ -35,9 +35,12 @@ application {
     mainClass = 'reminder.discord.bot.java.App'
 }
 
-// Load properties from file
+// Load properties from file if it exists
 def props = new Properties()
-file("src/main/resources/env.properties").withInputStream { props.load(it) }
+def propsFile = file("src/main/resources/env.properties")
+if (propsFile.exists()) {
+    propsFile.withInputStream { props.load(it) }
+}
 
 tasks.named('test') {
     // Use JUnit Platform for unit tests.
