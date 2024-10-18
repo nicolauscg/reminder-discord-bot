@@ -58,3 +58,19 @@ liquibase {
     // ./gradlew update
     // ./gradlew rollbackCount -PliquibaseCommandValue=1
 }
+
+jar {
+    manifest {
+        attributes "Main-Class": "reminder.discord.bot.java.App"
+    }
+}
+
+task fatJar(type: Jar) {
+    manifest {
+        attributes 'Main-Class': 'reminder.discord.bot.java.App'
+    }
+    archiveBaseName = 'fat-app'
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}

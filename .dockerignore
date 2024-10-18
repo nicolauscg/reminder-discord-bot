@@ -1,0 +1,6 @@
+.gradle
+.vscode
+app/bin
+app/build
+app/src/main/resources/env*
+!app/src/main/resources/env.example.properties

@@ -5,6 +5,7 @@
 build
 
 .vscode
-app/src/main/resources/env.properties
+app/src/main/resources/env*
+!app/src/main/resources/env.example.properties
 notes
 app/bin

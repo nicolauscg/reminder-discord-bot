@@ -1,9 +1,17 @@
 version: '3.9'
 
+# Note: this is only an example for development environments
 services:
+  reminder-app:
+    image: reminder:latest
+    restart: on-failure:3
+    environment:
+      CONFIG_FILE_PATH: /app/env.properties
+    volumes:
+      - ./app/src/main/resources/env.compose.properties:/app/env.properties
   reminder-db:
     image: postgres:16.2-alpine
-    restart: always
+    restart: on-failure:3
     ports:
     - "5432:5432"
     environment:
