@@ -1,5 +1,6 @@
 package reminder.discord.bot.java;
 
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.Properties;
 import java.util.concurrent.Executors;
@@ -8,6 +9,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.ibatis.mapping.Environment;
 import org.apache.ibatis.session.Configuration;
+import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 import org.apache.ibatis.transaction.TransactionFactory;
@@ -24,6 +26,7 @@ import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.ChunkingFilter;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import reminder.discord.bot.java.mapper.DraftReminderMapper;
+import reminder.discord.bot.java.mapper.PingMapper;
 import reminder.discord.bot.java.mapper.ReminderMapper;
 import reminder.discord.bot.java.mapper.ReminderParticipantMapper;
 
@@ -32,12 +35,25 @@ public class App {
         /*
          * Load properties
          */ 
-        InputStream envPropsIn = Thread.currentThread().getContextClassLoader().getResourceAsStream("env.properties");
-        if (envPropsIn == null) {
-            throw new Exception("Failed to get env.properties resource");
-        }
         Properties envProps = new Properties();
-        envProps.load(envPropsIn);
+
+        // Load from CONFIG_FILE_PATH if the evar is defined,
+        // otherwise load from resource
+        String configFilePath = System.getenv("CONFIG_FILE_PATH");
+        if (configFilePath != null) {
+            try (FileInputStream fis = new FileInputStream(configFilePath)) {
+                envProps.load(fis);
+                System.out.println("Loaded properties from " + configFilePath);
+            }
+        } else {
+            InputStream envPropsIn = Thread.currentThread().getContextClassLoader().getResourceAsStream("env.properties");
+            if (envPropsIn == null) {
+                throw new Exception("Failed to get env.properties resource");
+            }
+            envProps.load(envPropsIn);
+            System.out.println("Loaded properties from env.properties resource");
+        }
+
         String botToken = envProps.getProperty("BOT_TOKEN");
         if (botToken == null) {
             throw new Exception("BOT_TOKEN must be specified");
@@ -71,10 +87,17 @@ public class App {
         TransactionFactory transactionFactory = new JdbcTransactionFactory();
         Environment environment = new Environment("development", transactionFactory, dataSource);
         Configuration configuration = new Configuration(environment);
+        configuration.addMapper(PingMapper.class);
         configuration.addMapper(DraftReminderMapper.class);
         configuration.addMapper(ReminderMapper.class);
         configuration.addMapper(ReminderParticipantMapper.class);
         SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(configuration);
+        
+        // Test database connection
+        try (SqlSession session = sqlSessionFactory.openSession()) {
+            PingMapper mapper = session.getMapper(PingMapper.class);
+            mapper.ping();
+        }
 
         /*
          * Run Discord bot

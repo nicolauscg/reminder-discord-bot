@@ -14,6 +14,9 @@ import reminder.discord.bot.java.dto.DraftReminderUpdate;
 import reminder.discord.bot.java.model.DraftReminder;
 
 public interface DraftReminderMapper {
+    @Select("SELECT 1")
+    public Integer testConnection();
+
     @Results(id = "draftReminderMap", value = {
         @Result(property = "firstInteractionId", column = "first_interaction_id"),
         @Result(property = "userId", column = "user_id"),
