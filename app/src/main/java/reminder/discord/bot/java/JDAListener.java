@@ -89,7 +89,9 @@ public class JDAListener extends ListenerAdapter
                 /*
                 * Respond with a multi select about reminder's participants 
                 */
-                List<Member> guildMembers = event.getGuild().getMembers();
+                List<Member> nonBotGuildMembers = event.getGuild().getMembers()
+                    .stream().filter(mem -> !mem.getUser().isBot()).toList();
+
                 // Put the first interaction id in the custom id, the interaction id will be
                 // passed throughout the create reminder interaction chain so later interactions
                 // can identify which reminder they are working on
@@ -97,8 +99,9 @@ public class JDAListener extends ListenerAdapter
                 Builder selectMenuBuilder = StringSelectMenu.create(customId.toString())
                     .setPlaceholder("Select participants")
                     .setMinValues(1)
-                    .setMaxValues(guildMembers.size());
-                for (Member mem : guildMembers) {
+                    .setMaxValues(nonBotGuildMembers.size());
+
+                for (Member mem : nonBotGuildMembers) {
                     String optVal = String.format("%s%s%s",
                         mem.getId(), ParticipantUserIdsString.ATTR_SEPARATOR, mem.getEffectiveName());
                     selectMenuBuilder = selectMenuBuilder.addOption(mem.getEffectiveName(), optVal);
