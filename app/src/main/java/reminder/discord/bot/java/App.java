@@ -2,6 +2,8 @@ package reminder.discord.bot.java;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -54,14 +56,10 @@ public class App {
             System.out.println("Loaded properties from env.properties resource");
         }
 
+        // Mandatory properties
         String botToken = envProps.getProperty("BOT_TOKEN");
         if (botToken == null) {
             throw new Exception("BOT_TOKEN must be specified");
-        }
-        // For now always require DEV_GUILD_ID
-        String devGuildId = envProps.getProperty("DEV_GUILD_ID");
-        if (devGuildId == null) {
-            throw new Exception("DEV_GUILD_ID must be specified");
         }
         String dbUrl = envProps.getProperty("DB_URL");
         if (dbUrl == null) {
@@ -75,6 +73,11 @@ public class App {
         if (dbPassword == null) {
             throw new Exception("DB_PASSWORD must be specified");
         }
+        
+        // Optional properties
+        // DEV_GUILD_ID should only be specified during development to make slash cmds available immediately,
+        // otherwise global slash cmds are created and they take time to be available.
+        String devGuildId = envProps.getProperty("DEV_GUILD_ID");
 
         /*
          * Prepare database connection
@@ -108,17 +111,25 @@ public class App {
             .enableIntents(GatewayIntent.GUILD_MEMBERS)
             .addEventListeners(new JDAListener(sqlSessionFactory))
             .build();
-            jdaApi.awaitReady();
+        jdaApi.awaitReady();
         System.out.println("Bot is ready");
 
         /*
          * Register slash commands
          */ 
-        Guild devGuild = jdaApi.getGuildById(devGuildId);
         SlashCommandData createReminderCmd = Commands.slash("createreminder", "Create a reminder")
             .setGuildOnly(true);
         SlashCommandData completeReminderCmd = Commands.slash("completereminder", "Mark a reminder as completed");
-        devGuild.updateCommands().addCommands(createReminderCmd, completeReminderCmd).queue();
+        List<SlashCommandData> cmds = Arrays.asList(createReminderCmd, completeReminderCmd);
+        if (devGuildId == null) {
+            jdaApi.updateCommands().addCommands(cmds).complete();
+            System.out.println("Registered slash commands as global application commands, " +
+                "it may take time for the commands to be available");
+        } else {
+            Guild devGuild = jdaApi.getGuildById(devGuildId);
+            devGuild.updateCommands().addCommands(createReminderCmd, completeReminderCmd).complete();
+            System.out.println("Registered slash commands as guild application commands");
+        }
 
         /*
          * Run reminder service (handles sending Discord DMs to users)
