@@ -1,24 +1,22 @@
-package reminder.discord.bot.java.model;
+package com.nicolauscg.reminder.discord.bot.dto;
 
 import java.time.Instant;
 
-public class ReminderParticipant {
+public class ReminderParticipantCreate {
     private Integer reminderId;
     private String userId;
     private Boolean isComplete;
     private Integer remindedCount;
     private Instant lastRemindedAt;
     private Instant nextRemindAt;
-    
-    public ReminderParticipant() {
-    }
 
-    public Integer getReminderId() {
-        return reminderId;
-    }
-
-    public void setReminderId(Integer reminderId) {
+    public ReminderParticipantCreate(Integer reminderId, String userId, Instant nextRemindAt) {
         this.reminderId = reminderId;
+        this.userId = userId;
+        this.isComplete = false;
+        this.remindedCount = 0;
+        this.lastRemindedAt = null;
+        this.nextRemindAt = nextRemindAt;
     }
 
     public String getUserId() {
@@ -32,7 +30,7 @@ public class ReminderParticipant {
     public Boolean getIsComplete() {
         return isComplete;
     }
-    
+
     public void setIsComplete(Boolean isComplete) {
         this.isComplete = isComplete;
     }
@@ -61,10 +59,11 @@ public class ReminderParticipant {
         this.nextRemindAt = nextRemindAt;
     }
 
-    @Override
-    public String toString() {
-        return "ReminderParticipant [reminderId=" + reminderId + ", userId=" + userId + ", isComplete=" + isComplete
-                + ", remindedCount=" + remindedCount + ", lastRemindedAt=" + lastRemindedAt + ", nextRemindAt="
-                + nextRemindAt + "]";
+    public Integer getReminderId() {
+        return reminderId;
+    }
+
+    public void setReminderId(Integer reminderId) {
+        this.reminderId = reminderId;
     }
 }

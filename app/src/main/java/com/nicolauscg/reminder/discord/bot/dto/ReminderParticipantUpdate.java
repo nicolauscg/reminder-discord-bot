@@ -1,8 +1,8 @@
-package reminder.discord.bot.java.dto;
+package com.nicolauscg.reminder.discord.bot.dto;
 
 import java.time.Instant;
 
-public class ReminderParticipantCreate {
+public class ReminderParticipantUpdate {
     private Integer reminderId;
     private String userId;
     private Boolean isComplete;
@@ -10,13 +10,28 @@ public class ReminderParticipantCreate {
     private Instant lastRemindedAt;
     private Instant nextRemindAt;
 
-    public ReminderParticipantCreate(Integer reminderId, String userId, Instant nextRemindAt) {
+    public ReminderParticipantUpdate(Integer reminderId, String userId,
+            Integer remindedCount, Instant lastRemindedAt, Instant nextRemindAt) {
         this.reminderId = reminderId;
         this.userId = userId;
-        this.isComplete = false;
-        this.remindedCount = 0;
-        this.lastRemindedAt = null;
+        this.remindedCount = remindedCount;
+        this.lastRemindedAt = lastRemindedAt;
         this.nextRemindAt = nextRemindAt;
+    }
+
+    public ReminderParticipantUpdate(Integer reminderId, String userId,
+            Boolean isComplete) {
+        this.reminderId = reminderId;
+        this.userId = userId;
+        this.isComplete = isComplete;
+    }
+
+    public Integer getReminderId() {
+        return reminderId;
+    }
+
+    public void setReminderId(Integer reminderId) {
+        this.reminderId = reminderId;
     }
 
     public String getUserId() {
@@ -38,7 +53,7 @@ public class ReminderParticipantCreate {
     public Integer getRemindedCount() {
         return remindedCount;
     }
-
+    
     public void setRemindedCount(Integer remindedCount) {
         this.remindedCount = remindedCount;
     }
@@ -57,13 +72,5 @@ public class ReminderParticipantCreate {
 
     public void setNextRemindAt(Instant nextRemindAt) {
         this.nextRemindAt = nextRemindAt;
-    }
-
-    public Integer getReminderId() {
-        return reminderId;
-    }
-
-    public void setReminderId(Integer reminderId) {
-        this.reminderId = reminderId;
     }
 }

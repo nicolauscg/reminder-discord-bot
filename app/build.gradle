@@ -32,7 +32,7 @@ apply plugin: "org.liquibase.gradle"
 
 application {
     // Define the main class for the application.
-    mainClass = 'reminder.discord.bot.java.App'
+    mainClass = 'com.nicolauscg.reminder.discord.bot.App'
 }
 
 // Load properties from file if it exists
@@ -64,13 +64,13 @@ liquibase {
 
 jar {
     manifest {
-        attributes "Main-Class": "reminder.discord.bot.java.App"
+        attributes "Main-Class": "com.nicolauscg.reminder.discord.bot.App"
     }
 }
 
 task fatJar(type: Jar) {
     manifest {
-        attributes 'Main-Class': 'reminder.discord.bot.java.App'
+        attributes 'Main-Class': 'com.nicolauscg.reminder.discord.bot.App'
     }
     archiveBaseName = 'fat-app'
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE

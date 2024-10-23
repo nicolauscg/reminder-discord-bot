@@ -1,6 +1,6 @@
-package reminder.discord.bot.java.dto;
+package com.nicolauscg.reminder.discord.bot.dto;
 
-import reminder.discord.bot.java.model.ParticipantUserIdsString;
+import com.nicolauscg.reminder.discord.bot.model.ParticipantUserIdsString;
 
 public class DraftReminderUpdate {
     private String firstInteractionId;

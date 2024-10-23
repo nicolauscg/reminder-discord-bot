@@ -1,4 +1,4 @@
-package reminder.discord.bot.java.mapper;
+package com.nicolauscg.reminder.discord.bot.mapper;
 
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Param;
@@ -9,9 +9,9 @@ import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.UpdateProvider;
 import org.apache.ibatis.jdbc.SQL;
 
-import reminder.discord.bot.java.dto.DraftReminderCreate;
-import reminder.discord.bot.java.dto.DraftReminderUpdate;
-import reminder.discord.bot.java.model.DraftReminder;
+import com.nicolauscg.reminder.discord.bot.dto.DraftReminderCreate;
+import com.nicolauscg.reminder.discord.bot.dto.DraftReminderUpdate;
+import com.nicolauscg.reminder.discord.bot.model.DraftReminder;
 
 public interface DraftReminderMapper {
     @Select("SELECT 1")

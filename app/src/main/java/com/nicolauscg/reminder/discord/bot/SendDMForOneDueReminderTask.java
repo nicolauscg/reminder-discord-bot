@@ -1,4 +1,4 @@
-package reminder.discord.bot.java;
+package com.nicolauscg.reminder.discord.bot;
 
 import java.awt.Color;
 import java.time.Instant;
@@ -11,17 +11,18 @@ import org.apache.ibatis.session.SqlSessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.nicolauscg.reminder.discord.bot.dto.ReminderParticipantUpdate;
+import com.nicolauscg.reminder.discord.bot.mapper.ReminderMapper;
+import com.nicolauscg.reminder.discord.bot.mapper.ReminderParticipantMapper;
+import com.nicolauscg.reminder.discord.bot.model.Reminder;
+import com.nicolauscg.reminder.discord.bot.model.ReminderParticipant;
+
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.PrivateChannel;
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
-import reminder.discord.bot.java.dto.ReminderParticipantUpdate;
-import reminder.discord.bot.java.mapper.ReminderMapper;
-import reminder.discord.bot.java.mapper.ReminderParticipantMapper;
-import reminder.discord.bot.java.model.Reminder;
-import reminder.discord.bot.java.model.ReminderParticipant;
 
 public class SendDMForOneDueReminderTask implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(SendDMForOneDueReminderTask.class);

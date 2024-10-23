@@ -46,4 +46,4 @@ USER appuser
 
 COPY --from=package /build/app/build/libs/fat-app.jar /app/app.jar
 
-ENTRYPOINT [ "java", "-cp", "app.jar", "reminder.discord.bot.java.App"]
+ENTRYPOINT [ "java", "-cp", "app.jar", "com.nicolauscg.reminder.discord.bot.App"]

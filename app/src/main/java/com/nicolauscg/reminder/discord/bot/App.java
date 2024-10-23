@@ -1,4 +1,4 @@
-package reminder.discord.bot.java;
+package com.nicolauscg.reminder.discord.bot;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -19,6 +19,10 @@ import org.apache.ibatis.transaction.jdbc.JdbcTransactionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.nicolauscg.reminder.discord.bot.mapper.DraftReminderMapper;
+import com.nicolauscg.reminder.discord.bot.mapper.PingMapper;
+import com.nicolauscg.reminder.discord.bot.mapper.ReminderMapper;
+import com.nicolauscg.reminder.discord.bot.mapper.ReminderParticipantMapper;
 import com.zaxxer.hikari.HikariDataSource;
 
 import net.dv8tion.jda.api.JDA;
@@ -29,10 +33,6 @@ import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.ChunkingFilter;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
-import reminder.discord.bot.java.mapper.DraftReminderMapper;
-import reminder.discord.bot.java.mapper.PingMapper;
-import reminder.discord.bot.java.mapper.ReminderMapper;
-import reminder.discord.bot.java.mapper.ReminderParticipantMapper;
 
 public class App {
     private static final Logger logger = LoggerFactory.getLogger(App.class);

@@ -1,4 +1,4 @@
-package reminder.discord.bot.java;
+package com.nicolauscg.reminder.discord.bot;
 
 import javax.annotation.Nonnull;
 

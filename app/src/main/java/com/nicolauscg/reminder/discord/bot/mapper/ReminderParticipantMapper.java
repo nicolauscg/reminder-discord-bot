@@ -1,4 +1,4 @@
-package reminder.discord.bot.java.mapper;
+package com.nicolauscg.reminder.discord.bot.mapper;
 
 import java.time.Instant;
 import java.util.List;
@@ -11,9 +11,9 @@ import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.UpdateProvider;
 import org.apache.ibatis.jdbc.SQL;
 
-import reminder.discord.bot.java.dto.ReminderParticipantCreate;
-import reminder.discord.bot.java.dto.ReminderParticipantUpdate;
-import reminder.discord.bot.java.model.ReminderParticipant;
+import com.nicolauscg.reminder.discord.bot.dto.ReminderParticipantCreate;
+import com.nicolauscg.reminder.discord.bot.dto.ReminderParticipantUpdate;
+import com.nicolauscg.reminder.discord.bot.model.ReminderParticipant;
 
 public interface ReminderParticipantMapper {
     @Results(id = "reminderParticipantMap", value = {

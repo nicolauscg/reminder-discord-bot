@@ -1,4 +1,4 @@
-package reminder.discord.bot.java.mapper;
+package com.nicolauscg.reminder.discord.bot.mapper;
 
 import org.apache.ibatis.annotations.Select;
 

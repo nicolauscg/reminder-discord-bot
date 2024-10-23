@@ -1,29 +1,16 @@
-package reminder.discord.bot.java.dto;
+package com.nicolauscg.reminder.discord.bot.model;
 
 import java.time.Instant;
 
-public class ReminderParticipantUpdate {
+public class ReminderParticipant {
     private Integer reminderId;
     private String userId;
     private Boolean isComplete;
     private Integer remindedCount;
     private Instant lastRemindedAt;
     private Instant nextRemindAt;
-
-    public ReminderParticipantUpdate(Integer reminderId, String userId,
-            Integer remindedCount, Instant lastRemindedAt, Instant nextRemindAt) {
-        this.reminderId = reminderId;
-        this.userId = userId;
-        this.remindedCount = remindedCount;
-        this.lastRemindedAt = lastRemindedAt;
-        this.nextRemindAt = nextRemindAt;
-    }
-
-    public ReminderParticipantUpdate(Integer reminderId, String userId,
-            Boolean isComplete) {
-        this.reminderId = reminderId;
-        this.userId = userId;
-        this.isComplete = isComplete;
+    
+    public ReminderParticipant() {
     }
 
     public Integer getReminderId() {
@@ -45,7 +32,7 @@ public class ReminderParticipantUpdate {
     public Boolean getIsComplete() {
         return isComplete;
     }
-
+    
     public void setIsComplete(Boolean isComplete) {
         this.isComplete = isComplete;
     }
@@ -53,7 +40,7 @@ public class ReminderParticipantUpdate {
     public Integer getRemindedCount() {
         return remindedCount;
     }
-    
+
     public void setRemindedCount(Integer remindedCount) {
         this.remindedCount = remindedCount;
     }
@@ -72,5 +59,12 @@ public class ReminderParticipantUpdate {
 
     public void setNextRemindAt(Instant nextRemindAt) {
         this.nextRemindAt = nextRemindAt;
+    }
+
+    @Override
+    public String toString() {
+        return "ReminderParticipant [reminderId=" + reminderId + ", userId=" + userId + ", isComplete=" + isComplete
+                + ", remindedCount=" + remindedCount + ", lastRemindedAt=" + lastRemindedAt + ", nextRemindAt="
+                + nextRemindAt + "]";
     }
 }

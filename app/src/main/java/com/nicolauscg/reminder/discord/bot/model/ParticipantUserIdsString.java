@@ -1,4 +1,4 @@
-package reminder.discord.bot.java.model;
+package com.nicolauscg.reminder.discord.bot.model;
 
 import java.util.ArrayList;
 import java.util.Arrays;

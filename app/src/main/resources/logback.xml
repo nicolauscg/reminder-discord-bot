@@ -8,12 +8,12 @@
     </appender>
 
     <!-- Example to log sql for specific mappers -->
-    <!-- <logger name="reminder.discord.bot.java.mapper.DraftReminderMapper">
+    <!-- <logger name="com.nicolauscg.reminder.discord.bot.mapper.DraftReminderMapper">
         <level value="debug"/>
     </logger> -->
 
     <!-- Make app log level as info but other libraries level as warning -->
-    <logger name="reminder.discord.bot.java" level="INFO" />
+    <logger name="com.nicolauscg.reminder.discord.bot" level="INFO" />
     <root level="warn">
         <appender-ref ref="stdout"/>
     </root>

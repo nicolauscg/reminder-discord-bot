@@ -1,4 +1,4 @@
-package reminder.discord.bot.java;
+package com.nicolauscg.reminder.discord.bot;
 
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -14,6 +14,18 @@ import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.nicolauscg.reminder.discord.bot.dto.DraftReminderCreate;
+import com.nicolauscg.reminder.discord.bot.dto.DraftReminderUpdate;
+import com.nicolauscg.reminder.discord.bot.dto.ReminderAndParticipants;
+import com.nicolauscg.reminder.discord.bot.dto.ReminderParticipantCreate;
+import com.nicolauscg.reminder.discord.bot.dto.ReminderParticipantUpdate;
+import com.nicolauscg.reminder.discord.bot.mapper.DraftReminderMapper;
+import com.nicolauscg.reminder.discord.bot.mapper.ReminderMapper;
+import com.nicolauscg.reminder.discord.bot.mapper.ReminderParticipantMapper;
+import com.nicolauscg.reminder.discord.bot.model.DraftReminder;
+import com.nicolauscg.reminder.discord.bot.model.ParticipantUserIdsString;
+import com.nicolauscg.reminder.discord.bot.model.Reminder;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
@@ -32,17 +44,6 @@ import net.dv8tion.jda.api.interactions.components.text.TextInput;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
 import net.dv8tion.jda.api.interactions.modals.Modal;
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
-import reminder.discord.bot.java.dto.DraftReminderCreate;
-import reminder.discord.bot.java.dto.DraftReminderUpdate;
-import reminder.discord.bot.java.dto.ReminderAndParticipants;
-import reminder.discord.bot.java.dto.ReminderParticipantCreate;
-import reminder.discord.bot.java.dto.ReminderParticipantUpdate;
-import reminder.discord.bot.java.mapper.DraftReminderMapper;
-import reminder.discord.bot.java.mapper.ReminderMapper;
-import reminder.discord.bot.java.mapper.ReminderParticipantMapper;
-import reminder.discord.bot.java.model.DraftReminder;
-import reminder.discord.bot.java.model.ParticipantUserIdsString;
-import reminder.discord.bot.java.model.Reminder;
 
 public class JDAListener extends ListenerAdapter 
 {

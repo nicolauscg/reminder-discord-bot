@@ -1,4 +1,4 @@
-package reminder.discord.bot.java.dto;
+package com.nicolauscg.reminder.discord.bot.dto;
 
 public class ReminderCreate {
     private String userId;

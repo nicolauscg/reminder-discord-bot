@@ -1,4 +1,4 @@
-package reminder.discord.bot.java.mapper;
+package com.nicolauscg.reminder.discord.bot.mapper;
 
 import java.util.List;
 
@@ -7,8 +7,8 @@ import org.apache.ibatis.annotations.ResultMap;
 import org.apache.ibatis.annotations.Results;
 import org.apache.ibatis.annotations.Select;
 
-import reminder.discord.bot.java.dto.ReminderCreate;
-import reminder.discord.bot.java.model.Reminder;
+import com.nicolauscg.reminder.discord.bot.dto.ReminderCreate;
+import com.nicolauscg.reminder.discord.bot.model.Reminder;
 
 public interface ReminderMapper {
     @Results(id = "reminderMap", value = {

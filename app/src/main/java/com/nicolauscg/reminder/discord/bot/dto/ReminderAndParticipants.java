@@ -1,10 +1,10 @@
-package reminder.discord.bot.java.dto;
+package com.nicolauscg.reminder.discord.bot.dto;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
-import reminder.discord.bot.java.model.DraftReminder;
+import com.nicolauscg.reminder.discord.bot.model.DraftReminder;
 
 // Helper class to convert a DraftReminder entity to the appropriate create DTOs of a non-draft reminder.
 // A non-draft reminder consists of one Reminder entity and many ReminderParticipant entities.
