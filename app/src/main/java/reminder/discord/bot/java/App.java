@@ -16,6 +16,8 @@ import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 import org.apache.ibatis.transaction.TransactionFactory;
 import org.apache.ibatis.transaction.jdbc.JdbcTransactionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.zaxxer.hikari.HikariDataSource;
 
@@ -33,6 +35,8 @@ import reminder.discord.bot.java.mapper.ReminderMapper;
 import reminder.discord.bot.java.mapper.ReminderParticipantMapper;
 
 public class App {
+    private static final Logger logger = LoggerFactory.getLogger(App.class);
+
     public static void main(String[] args) throws Exception {
         /*
          * Load properties
@@ -45,7 +49,7 @@ public class App {
         if (configFilePath != null) {
             try (FileInputStream fis = new FileInputStream(configFilePath)) {
                 envProps.load(fis);
-                System.out.println("Loaded properties from " + configFilePath);
+                logger.info("Loaded properties from {}", configFilePath);
             }
         } else {
             InputStream envPropsIn = Thread.currentThread().getContextClassLoader().getResourceAsStream("env.properties");
@@ -53,7 +57,7 @@ public class App {
                 throw new Exception("Failed to get env.properties resource");
             }
             envProps.load(envPropsIn);
-            System.out.println("Loaded properties from env.properties resource");
+            logger.info("Loaded properties from env.properties resource");
         }
 
         // Mandatory properties
@@ -100,6 +104,7 @@ public class App {
         try (SqlSession session = sqlSessionFactory.openSession()) {
             PingMapper mapper = session.getMapper(PingMapper.class);
             mapper.ping();
+            logger.info("Checked database connectivity");
         }
 
         /*
@@ -112,7 +117,7 @@ public class App {
             .addEventListeners(new JDAListener(sqlSessionFactory))
             .build();
         jdaApi.awaitReady();
-        System.out.println("Bot is ready");
+        logger.info("Bot is ready");
 
         /*
          * Register slash commands
@@ -123,12 +128,12 @@ public class App {
         List<SlashCommandData> cmds = Arrays.asList(createReminderCmd, completeReminderCmd);
         if (devGuildId == null) {
             jdaApi.updateCommands().addCommands(cmds).complete();
-            System.out.println("Registered slash commands as global application commands, " +
+            logger.info("Registered slash commands as global application commands, " +
                 "it may take time for the commands to be available");
         } else {
             Guild devGuild = jdaApi.getGuildById(devGuildId);
             devGuild.updateCommands().addCommands(createReminderCmd, completeReminderCmd).complete();
-            System.out.println("Registered slash commands as guild application commands");
+            logger.info("Registered slash commands as guild application commands");
         }
 
         /*

@@ -8,6 +8,8 @@ import java.time.format.DateTimeFormatter;
 
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
@@ -22,9 +24,11 @@ import reminder.discord.bot.java.model.Reminder;
 import reminder.discord.bot.java.model.ReminderParticipant;
 
 public class SendDMForOneDueReminderTask implements Runnable {
+    private static final Logger logger = LoggerFactory.getLogger(SendDMForOneDueReminderTask.class);
+
     private SqlSessionFactory sqlSessionFactory;
     private JDA jda;
-
+    
     public SendDMForOneDueReminderTask(SqlSessionFactory sqlSessionFactory, JDA jda) {
         this.sqlSessionFactory = sqlSessionFactory;
         this.jda = jda;
@@ -32,7 +36,7 @@ public class SendDMForOneDueReminderTask implements Runnable {
 
     @Override
     public void run() {
-        System.out.println("running reminder task");
+        logger.info("Running reminder task");
         try (SqlSession session = this.sqlSessionFactory.openSession()) {
             ReminderParticipantMapper reminderParticipantMapper = session.getMapper(ReminderParticipantMapper.class);
             ReminderMapper reminderMapper = session.getMapper(ReminderMapper.class);
@@ -42,7 +46,7 @@ public class SendDMForOneDueReminderTask implements Runnable {
              */
             ReminderParticipant participant = reminderParticipantMapper.getOneToRemind(Instant.now());
             if (participant == null) {
-                System.out.println("nothing to remind");
+                logger.info("Nothing to remind");
                 return;
             }
             Reminder reminder = reminderMapper.getOneById(participant.getReminderId());
@@ -60,7 +64,8 @@ public class SendDMForOneDueReminderTask implements Runnable {
                 .addField("Title", reminder.getTitle(), false)
                 .addField("Create date", formatter.format(reminder.getCreatedAt()), true)
                 .addField("Content", reminder.getDescription(), false)
-                .appendDescription("\n:warning: You will be reminded of this again every day until you complete the reminder with the /completereminder command.")
+                .appendDescription("\n:warning: You will be reminded of this every day until you complete the reminder with the /completereminder command, " +
+                    "which can be done in this chat")
                 .build();
             // Must use complete() to be synchronous, so that the DB update is only run after sending DM succeeds
             discordDmChannel.sendMessage(
@@ -68,7 +73,7 @@ public class SendDMForOneDueReminderTask implements Runnable {
                     .addEmbeds(embedMsg)
                     .build()
             ).complete();
-            System.out.printf("sent a reminder with id %d to discord user id %s\n", reminder.getId(), participantDiscordUser.getId());
+            logger.info("Sent a reminder with id {} to discord user id {}", reminder.getId(), participantDiscordUser.getId());
 
             /*
              * Remember that the user has been reminded
@@ -79,6 +84,5 @@ public class SendDMForOneDueReminderTask implements Runnable {
             reminderParticipantMapper.updateOne(participantUpdate);
             session.commit();
         }
-        System.out.println("reminder task finished");
     }
 }

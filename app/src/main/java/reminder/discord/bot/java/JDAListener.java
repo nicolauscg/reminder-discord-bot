@@ -12,6 +12,8 @@ import javax.annotation.Nonnull;
 
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
@@ -52,6 +54,8 @@ public class JDAListener extends ListenerAdapter
 
     static final String SELECT_REMINDER_LABEL = "complete-reminder-select";
     static final String CONFIRM_COMPLETE_LABEL = "complete-reminder-confirm";
+    
+    private static final Logger logger = LoggerFactory.getLogger(JDAListener.class);
 
     private SqlSessionFactory sqlSessionFactory;
 
@@ -326,6 +330,7 @@ public class JDAListener extends ListenerAdapter
                 reminderParticipantMapper.createMany(participantsCreate);
 
                 session.commit();
+                logger.info("User with id {} created a reminder with id {}", draftReminder.getUserId(), reminderId);
             }
             
             MessageEmbed embedMsg = new EmbedBuilder()
@@ -351,6 +356,7 @@ public class JDAListener extends ListenerAdapter
                 );
                 mapper.updateOne(update);
                 session.commit();
+                logger.info("User with id {} completed a reminder with id {}", event.getUser().getId(), reminderId);
             }
             
             MessageEmbed embedMsg = new EmbedBuilder()
