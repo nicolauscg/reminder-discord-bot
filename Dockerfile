@@ -22,7 +22,7 @@ FROM deps AS package
 WORKDIR /build
 
 COPY ./app/src /build/app/src/
-RUN ./gradlew fatJar
+RUN ./gradlew shadowJar
 
 #
 # Final container
@@ -31,6 +31,8 @@ RUN ./gradlew fatJar
 FROM eclipse-temurin:23-jre-alpine AS final
 
 WORKDIR /app
+
+RUN mkdir /app/config
 
 # Create a non-privileged user that the app will run under
 ARG UID=10001
@@ -44,6 +46,7 @@ RUN adduser \
     appuser
 USER appuser
 
-COPY --from=package /build/app/build/libs/fat-app.jar /app/app.jar
+COPY --from=package /build/app/build/libs/app-all.jar /app/app.jar
+COPY ./app/src/main/resources /app/defaultconfig
 
-ENTRYPOINT [ "java", "-cp", "app.jar", "com.nicolauscg.reminder.discord.bot.App"]
+ENTRYPOINT [ "java", "-cp", "app.jar:config:defaultconfig", "com.nicolauscg.reminder.discord.bot.App"]

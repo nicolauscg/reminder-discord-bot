@@ -41,24 +41,15 @@ public class App {
         /*
          * Load properties
          */ 
+        
+        // Load env file as a resource
         Properties envProps = new Properties();
-
-        // Load from CONFIG_FILE_PATH if the evar is defined,
-        // otherwise load from resource
-        String configFilePath = System.getenv("CONFIG_FILE_PATH");
-        if (configFilePath != null) {
-            try (FileInputStream fis = new FileInputStream(configFilePath)) {
-                envProps.load(fis);
-                logger.info("Loaded properties from {}", configFilePath);
-            }
-        } else {
-            InputStream envPropsIn = Thread.currentThread().getContextClassLoader().getResourceAsStream("env.properties");
-            if (envPropsIn == null) {
-                throw new Exception("Failed to get env.properties resource");
-            }
-            envProps.load(envPropsIn);
-            logger.info("Loaded properties from env.properties resource");
+        InputStream envPropsIn = Thread.currentThread().getContextClassLoader().getResourceAsStream("env.properties");
+        if (envPropsIn == null) {
+            throw new Exception("Failed to get env.properties resource");
         }
+        envProps.load(envPropsIn);
+        logger.info("Loaded properties from env.properties resource");
 
         // Mandatory properties
         String botToken = envProps.getProperty("BOT_TOKEN");
