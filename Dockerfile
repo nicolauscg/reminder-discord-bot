@@ -48,5 +48,6 @@ USER appuser
 
 COPY --from=package /build/app/build/libs/app-all.jar /app/app.jar
 COPY ./app/src/main/resources /app/defaultconfig
+COPY ./db /app/db
 
 ENTRYPOINT [ "java", "-cp", "app.jar:config:defaultconfig", "com.nicolauscg.reminder.discord.bot.App"]
