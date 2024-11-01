@@ -22,9 +22,10 @@ public interface ReminderMapper {
     @Select({"SELECT * FROM reminder WHERE id = #{id}"})
     public Reminder getOneById(Integer id);
 
+    // Returned reminders are limited to 20 as the max items in a Discord string select menu is 25
     @ResultMap("reminderMap")
     @Select({"SELECT r.* FROM reminder r INNER JOIN reminder_participant rp ON r.id = rp.reminder_id",
-        "WHERE rp.user_id = #{participantUserId} AND rp.is_complete = false"})
+        "WHERE rp.user_id = #{participantUserId} AND rp.is_complete = false ORDER BY r.created_at LIMIT 20"})
     public List<Reminder> getManyUncompletedReminderByParticipantUserId(String participantUserId);
 
     // @Select is used instead of @Insert as the returning clause is used to return the inserted row id.

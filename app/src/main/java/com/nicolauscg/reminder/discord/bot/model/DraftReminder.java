@@ -1,7 +1,6 @@
 package com.nicolauscg.reminder.discord.bot.model;
 
 import java.time.Instant;
-import java.util.List;
 
 // Class methods are generated with help from IDE.
 
@@ -59,11 +58,7 @@ public class DraftReminder {
     }
 
     public void setParticipantUserIds(String participantUserIds) {
-        this.participantUserIds = new ParticipantUserIdsString(participantUserIds);
-    }
-
-    public void setParticipantUserIds(List<String> participantUserIds) {
-        this.participantUserIds = new ParticipantUserIdsString(participantUserIds);
+        this.participantUserIds = ParticipantUserIdsString.fromString(participantUserIds);
     }
 
     public String getTitle() {

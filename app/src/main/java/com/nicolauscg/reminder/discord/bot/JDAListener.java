@@ -28,17 +28,19 @@ import com.nicolauscg.reminder.discord.bot.model.ParticipantUserIdsString;
 import com.nicolauscg.reminder.discord.bot.model.Reminder;
 
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.component.EntitySelectInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
+import net.dv8tion.jda.api.interactions.components.selections.EntitySelectMenu;
+import net.dv8tion.jda.api.interactions.components.selections.EntitySelectMenu.SelectTarget;
 import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu.Builder;
 import net.dv8tion.jda.api.interactions.components.text.TextInput;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
@@ -94,23 +96,14 @@ public class JDAListener extends ListenerAdapter
                 /*
                 * Respond with a multi select about reminder's participants 
                 */
-                List<Member> nonBotGuildMembers = event.getGuild().getMembers()
-                    .stream().filter(mem -> !mem.getUser().isBot()).toList();
-
-                // Put the first interaction id in the custom id, the interaction id will be
-                // passed throughout the create reminder interaction chain so later interactions
-                // can identify which reminder they are working on
                 CustomId customId = new CustomId(SELECT_PARTICIPANT_LABEL, firstInteractionId);
-                Builder selectMenuBuilder = StringSelectMenu.create(customId.toString())
+
+                EntitySelectMenu participantsSelect = EntitySelectMenu.create(customId.toString(), SelectTarget.USER)
                     .setPlaceholder("Select participants")
                     .setMinValues(1)
-                    .setMaxValues(nonBotGuildMembers.size());
-
-                for (Member mem : nonBotGuildMembers) {
-                    String optVal = String.format("%s%s%s",
-                        mem.getId(), ParticipantUserIdsString.ATTR_SEPARATOR, mem.getEffectiveName());
-                    selectMenuBuilder = selectMenuBuilder.addOption(mem.getEffectiveName(), optVal);
-                }
+                    // Max value is 25
+                    .setMaxValues(20)
+                    .build();
                 
                 MessageEmbed embedMsg = new EmbedBuilder()
                     .setColor(Color.WHITE)
@@ -122,7 +115,7 @@ public class JDAListener extends ListenerAdapter
                 event.getHook().sendMessage(
                     new MessageCreateBuilder()
                         .addEmbeds(embedMsg)
-                        .addComponents(ActionRow.of(selectMenuBuilder.build()))
+                        .addComponents(ActionRow.of(participantsSelect))
                         .build()
                 ).queue();
 
@@ -192,16 +185,18 @@ public class JDAListener extends ListenerAdapter
     }
 
     @Override
-    public void onStringSelectInteraction(StringSelectInteractionEvent event) {
+    public void onEntitySelectInteraction(EntitySelectInteractionEvent event) {
         CustomId eventCustomId = new CustomId(event.getComponentId());
         if (eventCustomId.label.equals(SELECT_PARTICIPANT_LABEL)) {
             String firstInteractionId = eventCustomId.firstIntrId;
+
+            List<User> selectedParticipants = event.getMentions().getUsers();
             
             // Save participants to DB
             try (SqlSession session = this.sqlSessionFactory.openSession()) {
                 DraftReminderMapper mapper = session.getMapper(DraftReminderMapper.class);
 
-                ParticipantUserIdsString participants = new ParticipantUserIdsString(event.getValues());
+                ParticipantUserIdsString participants = new ParticipantUserIdsString(selectedParticipants);
                 DraftReminderUpdate reminderUpdate = new DraftReminderUpdate(firstInteractionId, participants, null, null);
                 mapper.updateOne(reminderUpdate);
 
@@ -224,7 +219,13 @@ public class JDAListener extends ListenerAdapter
                     .addComponents(ActionRow.of(title), ActionRow.of(content))
                     .build();
             event.replyModal(modal).queue();
-        } else if (eventCustomId.label.equals(SELECT_REMINDER_LABEL)) {
+        }
+    }
+
+    @Override
+    public void onStringSelectInteraction(StringSelectInteractionEvent event) {
+        CustomId eventCustomId = new CustomId(event.getComponentId());
+        if (eventCustomId.label.equals(SELECT_REMINDER_LABEL)) {
             event.deferReply(true).queue();
             Integer reminderId = Integer.parseInt(event.getValues().get(0));
             Reminder reminder;

@@ -1,10 +1,11 @@
 package com.nicolauscg.reminder.discord.bot.model;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import net.dv8tion.jda.api.entities.User;
 
 // Represents a list of user id and name tuples as a string
 // e.g. "1234:john#1235:doe"
@@ -18,22 +19,31 @@ public class ParticipantUserIdsString {
     private List<String> userIds;
     private List<String> names;
 
-    // userIdsAndNames list elements should be of format: "<userId>:<name>"
-    public ParticipantUserIdsString(List<String> userIdsAndNames) {
-        this.userIds = new ArrayList<>();
-        this.names = new ArrayList<>();
-        for (String userIdAndName : userIdsAndNames) {
-            String[] userIdAndNameArr = userIdAndName.split(ATTR_SEPARATOR, 2);
-            this.userIds.add(userIdAndNameArr[0]);
-            if (userIdAndNameArr.length > 0) {
-                this.names.add(userIdAndNameArr[1]);
-            }
-        }
+    public ParticipantUserIdsString(List<String> userIds, List<String> userNames) {
+        this.userIds = userIds;
+        this.names = userNames;
+    }
+    
+    public ParticipantUserIdsString(List<User> users) {
+        this(
+            users.stream().map(user -> user.getId()).toList(),
+            users.stream().map(user -> user.getEffectiveName()).toList()
+        );
     }
 
     // userIdsAndNames string should be of format: "<userId1>:<name1>#<userId2>:<name2>"
-    public ParticipantUserIdsString(String userIdsAndNames) {
-        this(Arrays.asList(userIdsAndNames.split(ELEMENT_SEPARATOR)));
+    public static ParticipantUserIdsString fromString(String userIdsAndNames) {
+        List<String> userIdAndNameList = Arrays.asList(userIdsAndNames.split(ELEMENT_SEPARATOR));
+        return new ParticipantUserIdsString(
+            userIdAndNameList.stream().map(str -> str.split(ATTR_SEPARATOR)[0]).toList(),
+            userIdAndNameList.stream().map(str -> {
+                String[] arr = str.split(ATTR_SEPARATOR);
+                if (arr.length > 1) {
+                    return arr[1];
+                }
+                return arr[0];
+            }).toList()
+        );
     }
 
     public List<String> getUserIds() {

@@ -39,7 +39,7 @@ public class DraftReminderUpdate {
     }
 
     public void setParticipantUserIds(String participantUserIds) {
-        this.participantUserIds = new ParticipantUserIdsString(participantUserIds);
+        this.participantUserIds = ParticipantUserIdsString.fromString(participantUserIds);
     }
 
     public String getTitle() {
