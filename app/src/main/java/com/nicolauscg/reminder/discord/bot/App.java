@@ -1,6 +1,5 @@
 package com.nicolauscg.reminder.discord.bot;
 
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;

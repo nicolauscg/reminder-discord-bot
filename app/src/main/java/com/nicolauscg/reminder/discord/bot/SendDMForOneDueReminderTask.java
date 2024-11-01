@@ -65,8 +65,7 @@ public class SendDMForOneDueReminderTask implements Runnable {
                 .addField("Title", reminder.getTitle(), false)
                 .addField("Create date", formatter.format(reminder.getCreatedAt()), true)
                 .addField("Content", reminder.getDescription(), false)
-                .appendDescription("\n:warning: You will be reminded of this every day until you complete the reminder with the /completereminder command, " +
-                    "which can be done in this chat")
+                .setFooter("WARNING: You will be reminded of this every day until you complete the reminder with the /completereminder command in this chat")
                 .build();
             // Must use complete() to be synchronous, so that the DB update is only run after sending DM succeeds
             discordDmChannel.sendMessage(
